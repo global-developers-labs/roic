@@ -3,8 +3,8 @@ import fs from 'fs-extra';
 import { analyzeFile, calculateRiskScore } from '../bots/analyzer.js';
 
 export async function runBotsAction() {
-  console.log(chalk.bold.magenta('\n🚀 ROC IO - ULTRA FAST SPACE EDITION IS ACTIVE'));
-  console.log(chalk.gray('Initializing Light-Speed Scan Engine...\n'));
+  console.log(chalk.bold.cyan('\n🧠 ROC IO - DEEP HYPER BOT ACTIVATED'));
+  console.log(chalk.gray('Performing 30x Deep Analysis with Auto-Fix Suggestions...\n'));
 
   if (!await fs.pathExists('.roc-io-config.json')) {
     console.log(chalk.red('❌ Error: Project not configured. Run "rock-io setup" first.'));
@@ -21,45 +21,47 @@ export async function runBotsAction() {
   for (const file of files) {
     try {
       const content = await fs.readFile(file, 'utf8');
-      const { issues, scanTime } = await analyzeFile(file, content);
+      const { issues, scanTime } = await analyzeFile(file, content, 'DEEP_HYPER');
       
       if (issues.length > 0) {
-        console.log(chalk.yellow(`⚡ [${scanTime}ms] ${file} -> ${issues.length} issues found`));
+        console.log(chalk.bold.yellow(`\n🔍 [${scanTime}ms] ${file} (${issues.length} issues)`));
+        
         issues.forEach(issue => {
-          const color = issue.severity > 30 ? chalk.red : chalk.cyan;
-          console.log(color(`   [${issue.type}] ${issue.message}`));
+          console.log(chalk.red(`   [${issue.type}] Line ${issue.line}: ${issue.message}`));
+          console.log(chalk.gray(`      Original: `) + chalk.white(issue.original));
+          console.log(chalk.green(`      Suggested Fix: `) + chalk.bold(issue.suggestedFix));
+          console.log('');
         });
         allProjectIssues.push(...issues);
       } else {
-        console.log(chalk.green(`✨ [${scanTime}ms] ${file} -> CLEAN`));
+        // console.log(chalk.green(`✨ [${scanTime}ms] ${file} -> CLEAN`));
       }
       totalFilesScanned++;
     } catch (err) {
-      // Skip binary or unreadable files silently for speed
+      // Skip binary or unreadable files
     }
   }
 
   const totalTime = (Date.now() - startTime) / 1000;
   const { probability, status } = calculateRiskScore(allProjectIssues);
 
-  console.log(chalk.bold('\n' + '='.repeat(50)));
-  console.log(chalk.bold.white(`📊 FINAL SPACE-SCAN REPORT`));
-  console.log('='.repeat(50));
-  console.log(`⏱️  Total Scan Time: ${chalk.cyan(totalTime.toFixed(3) + 's')}`);
-  console.log(`📂 Files Processed: ${chalk.cyan(totalFilesScanned)}`);
+  console.log(chalk.bold('\n' + '='.repeat(60)));
+  console.log(chalk.bold.white(`📊 DEEP HYPER ANALYSIS SUMMARY`));
+  console.log('='.repeat(60));
+  console.log(`⏱️  Scan Duration: ${chalk.cyan(totalTime.toFixed(3) + 's')}`);
+  console.log(`📂 Files Scanned: ${chalk.cyan(totalFilesScanned)}`);
   console.log(`⚠️  Total Issues: ${chalk.red(allProjectIssues.length)}`);
   
-  console.log('\n' + '-'.repeat(30));
-  console.log(chalk.bold(`🔥 SYSTEM FAILURE PROBABILITY: ${probability}%`));
+  console.log('\n' + '-'.repeat(40));
+  console.log(chalk.bold(`🔥 FAILURE PROBABILITY: ${probability}%`));
   
-  const statusColor = probability > 70 ? chalk.bgRed : (probability > 40 ? chalk.bgYellow : chalk.bgGreen);
+  const statusColor = probability > 75 ? chalk.bgRed : (probability > 40 ? chalk.bgYellow : chalk.bgGreen);
   console.log(statusColor.black(` STATUS: ${status} `));
-  console.log('-'.repeat(30));
+  console.log('-'.repeat(40));
 
   if (probability > 50) {
-    console.log(chalk.red('\n🚨 WARNING: High probability of system leak or failure detected!'));
-    console.log(chalk.red('Check the "Critical" issues above immediately.'));
+    console.log(chalk.red('\n🚨 ACTION REQUIRED: Apply the suggested fixes to stabilize the system.'));
   } else {
-    console.log(chalk.green('\n✅ System appears robust. Keep maintaining best practices.'));
+    console.log(chalk.green('\n✅ System health is optimal. Suggestions are for optimization.'));
   }
 }
