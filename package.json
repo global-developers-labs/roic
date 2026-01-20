@@ -1,0 +1,28 @@
+{
+  "name": "roc-io",
+  "version": "1.0.0",
+  "description": "ROC IO - A powerful CLI tool for code analysis and bug detection using smart bots.",
+  "main": "src/index.js",
+  "type": "module",
+  "bin": {
+    "rock-io": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [
+    "cli",
+    "code-analysis",
+    "bots",
+    "developer-tools"
+  ],
+  "author": "Manus",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^11.1.0",
+    "fs-extra": "^11.2.0",
+    "glob": "^10.3.10",
+    "inquirer": "^9.2.12"
+  }
+}
