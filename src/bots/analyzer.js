@@ -1,73 +1,56 @@
 /**
- * ROC IO - ULTRA FAST SPACE EDITION
- * Optimized for Light-Speed Scanning & Deep Risk Assessment
+ * ROC IO - MULTI-EDITION ANALYZER ENGINE
+ * Editions: STANDARD, SPACE, HYPER
  */
 
-export async function analyzeFile(filename, content) {
+export const EDITIONS = {
+  STANDARD: { name: 'Standard Bot', speed: 'Normal', depth: 'Basic' },
+  SPACE: { name: 'Space Bot', speed: 'Fast', depth: 'Advanced' },
+  HYPER: { name: 'Hyper Bot', speed: 'Ultra-Fast', depth: 'Deep/Massive' }
+};
+
+export async function analyzeFile(filename, content, edition = 'HYPER') {
   const startTime = Date.now();
   const issues = [];
-  const extension = filename.split('.').pop().toLowerCase();
   
-  // Ultra-Fast Compiled Regex Patterns
-  const SECURITY_PATTERNS = [
-    { reg: /(password|secret|api_key|token|auth_key|private_key|access_key)\s*[:=]\s*['"][^'"]{5,}['"]/gi, severity: 40, type: 'Leak Risk', msg: 'Hardcoded Credential' },
-    { reg: /eval\s*\(/g, severity: 50, type: 'Execution Risk', msg: 'Dynamic Code Execution' },
-    { reg: /dangerouslySetInnerHTML/g, severity: 45, type: 'XSS Risk', msg: 'React Insecure Rendering' },
-    { reg: /chmod\s+777/g, severity: 35, type: 'Permission Risk', msg: 'Overly Permissive Access' },
-    { reg: /http:\/\/[a-z0-9]/gi, severity: 20, type: 'Transport Risk', msg: 'Insecure Protocol (HTTP)' }
+  // Base patterns for all editions
+  const basePatterns = [
+    { reg: /eval\s*\(/g, severity: 50, type: 'Critical Security', msg: 'Dynamic Execution' },
+    { reg: /catch\s*\([^)]*\)\s*{\s*}/g, severity: 25, type: 'Failure Risk', msg: 'Silent Error' }
   ];
 
-  const LOGIC_PATTERNS = [
-    { reg: /catch\s*\([^)]*\)\s*{\s*}/g, severity: 25, type: 'Failure Risk', msg: 'Silent Error Swallowing' },
-    { reg: /if\s*\([^)]*==[^=][^)]*\)/g, severity: 15, type: 'Logic Risk', msg: 'Loose Equality Check' },
-    { reg: /while\s*\(true\)/g, severity: 30, type: 'Stability Risk', msg: 'Potential Infinite Loop' },
-    { reg: /JSON\.parse\s*\([^)]*\)/g, severity: 10, type: 'Parsing Risk', msg: 'Unsafe JSON Parsing' }
-  ];
+  // Hyper-specific deep scanning patterns
+  const hyperPatterns = edition === 'HYPER' ? [
+    { reg: /(password|secret|key|token)\s*[:=]\s*['"][^'"]{5,}['"]/gi, severity: 40, type: 'Security', msg: 'Hardcoded Secret' },
+    { reg: /http:\/\//gi, severity: 15, type: 'Protocol', msg: 'Insecure HTTP' },
+    { reg: /dangerouslySetInnerHTML/g, severity: 45, type: 'XSS', msg: 'Insecure React Render' },
+    { reg: /== null/g, severity: 10, type: 'Logic', msg: 'Loose Null Check' },
+    { reg: /console\.log/g, severity: 5, type: 'Cleanup', msg: 'Debug Log' }
+  ] : [];
 
-  // 1. Parallel Pattern Matching
-  const allPatterns = [...SECURITY_PATTERNS, ...LOGIC_PATTERNS];
-  
-  // Use a single pass for all patterns to maximize speed
-  allPatterns.forEach(p => {
+  const activePatterns = [...basePatterns, ...hyperPatterns];
+
+  // Ultra-optimized single-pass scan
+  activePatterns.forEach(p => {
     let match;
     while ((match = p.reg.exec(content)) !== null) {
       const lineNum = content.substring(0, match.index).split('\n').length;
-      issues.push({ 
-        type: p.type, 
-        message: `Line ${lineNum}: ${p.msg}`,
-        severity: p.severity 
-      });
+      issues.push({ type: p.type, message: `Line ${lineNum}: ${p.msg}`, severity: p.severity });
     }
   });
 
-  // 2. Language Specific Heuristics (Optimized)
-  if (['ts', 'tsx', 'js'].includes(extension)) {
-    if (content.includes('any')) {
-      const anyCount = (content.match(/: any/g) || []).length;
-      if (anyCount > 5) issues.push({ type: 'Type Risk', message: `High usage of 'any' (${anyCount} times). System stability decreased.`, severity: 15 });
-    }
-  }
-
-  const scanTime = Date.now() - startTime;
-  return { issues, scanTime };
+  return { issues, scanTime: Date.now() - startTime };
 }
 
-/**
- * Calculate Total System Failure Probability
- */
 export function calculateRiskScore(allIssues) {
   let totalScore = 0;
-  allIssues.forEach(issue => {
-    totalScore += issue.severity || 0;
-  });
-
-  // Normalize score to 0-100%
-  const probability = Math.min(Math.round((totalScore / 500) * 100), 100);
+  allIssues.forEach(issue => totalScore += issue.severity || 0);
+  const probability = Math.min(Math.round((totalScore / 1000) * 100), 100);
   
   let status = 'STABLE';
-  if (probability > 70) status = 'CRITICAL FAILURE RISK';
-  else if (probability > 40) status = 'UNSTABLE / VULNERABLE';
-  else if (probability > 15) status = 'MODERATE RISK';
+  if (probability > 80) status = 'CRITICAL FAILURE';
+  else if (probability > 50) status = 'HIGH RISK';
+  else if (probability > 20) status = 'MODERATE';
 
   return { probability, status };
 }
