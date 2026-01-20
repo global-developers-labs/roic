@@ -1,48 +1,65 @@
 import chalk from 'chalk';
 import fs from 'fs-extra';
-import { analyzeFile } from '../bots/analyzer.js';
+import { analyzeFile, calculateRiskScore } from '../bots/analyzer.js';
 
 export async function runBotsAction() {
-  console.log(chalk.magenta('\n🤖 ROC IO Bots are starting the analysis...'));
+  console.log(chalk.bold.magenta('\n🚀 ROC IO - ULTRA FAST SPACE EDITION IS ACTIVE'));
+  console.log(chalk.gray('Initializing Light-Speed Scan Engine...\n'));
 
   if (!await fs.pathExists('.roc-io-config.json')) {
-    console.log(chalk.red('❌ Error: Project not configured. Please run "rock-io setup" first.'));
+    console.log(chalk.red('❌ Error: Project not configured. Run "rock-io setup" first.'));
     return;
   }
 
   const config = await fs.readJson('.roc-io-config.json');
   const files = config.analyzedFiles;
+  const startTime = Date.now();
 
-  console.log(chalk.blue(`\n🔍 Analyzing ${files.length} files...\n`));
-
-  let totalBugs = 0;
+  let allProjectIssues = [];
+  let totalFilesScanned = 0;
 
   for (const file of files) {
-    process.stdout.write(chalk.gray(`Checking ${file}... `));
-    
     try {
       const content = await fs.readFile(file, 'utf8');
-      const results = await analyzeFile(file, content);
+      const { issues, scanTime } = await analyzeFile(file, content);
       
-      if (results.length > 0) {
-        console.log(chalk.yellow('⚠️  Potential Issues Found'));
-        results.forEach(bug => {
-          console.log(chalk.red(`   - [${bug.type}] ${bug.message}`));
-          totalBugs++;
+      if (issues.length > 0) {
+        console.log(chalk.yellow(`⚡ [${scanTime}ms] ${file} -> ${issues.length} issues found`));
+        issues.forEach(issue => {
+          const color = issue.severity > 30 ? chalk.red : chalk.cyan;
+          console.log(color(`   [${issue.type}] ${issue.message}`));
         });
+        allProjectIssues.push(...issues);
       } else {
-        console.log(chalk.green('✅ Clean'));
+        console.log(chalk.green(`✨ [${scanTime}ms] ${file} -> CLEAN`));
       }
+      totalFilesScanned++;
     } catch (err) {
-      console.log(chalk.red('❌ Error reading file'));
+      // Skip binary or unreadable files silently for speed
     }
   }
 
-  console.log(chalk.bold('\n--- Analysis Summary ---'));
-  if (totalBugs > 0) {
-    console.log(chalk.yellow(`Found ${totalBugs} potential issues across your project.`));
-    console.log(chalk.cyan('Check the suggestions above to improve your code.'));
+  const totalTime = (Date.now() - startTime) / 1000;
+  const { probability, status } = calculateRiskScore(allProjectIssues);
+
+  console.log(chalk.bold('\n' + '='.repeat(50)));
+  console.log(chalk.bold.white(`📊 FINAL SPACE-SCAN REPORT`));
+  console.log('='.repeat(50));
+  console.log(`⏱️  Total Scan Time: ${chalk.cyan(totalTime.toFixed(3) + 's')}`);
+  console.log(`📂 Files Processed: ${chalk.cyan(totalFilesScanned)}`);
+  console.log(`⚠️  Total Issues: ${chalk.red(allProjectIssues.length)}`);
+  
+  console.log('\n' + '-'.repeat(30));
+  console.log(chalk.bold(`🔥 SYSTEM FAILURE PROBABILITY: ${probability}%`));
+  
+  const statusColor = probability > 70 ? chalk.bgRed : (probability > 40 ? chalk.bgYellow : chalk.bgGreen);
+  console.log(statusColor.black(` STATUS: ${status} `));
+  console.log('-'.repeat(30));
+
+  if (probability > 50) {
+    console.log(chalk.red('\n🚨 WARNING: High probability of system leak or failure detected!'));
+    console.log(chalk.red('Check the "Critical" issues above immediately.'));
   } else {
-    console.log(chalk.green('✨ Your project looks clean! No major bugs detected by ROC IO bots.'));
+    console.log(chalk.green('\n✅ System appears robust. Keep maintaining best practices.'));
   }
 }
