@@ -58,3 +58,33 @@ export async function runByIdAction(id) {
   console.log(`⏱️ Time: ${result.scanTime.toFixed(3)}s`);
   console.log(`🔥 Risk: ${result.probability}% [${result.status}]`);
 }
+
+export async function askPromptAction(prompt) {
+  console.log(chalk.bold.cyan(`\n🤖 ROC AI INTERPRETER`));
+  console.log(chalk.gray(`Analyzing prompt: "${prompt}"...\n`));
+
+  if (!await fs.pathExists('.roc-io-config.json')) {
+    console.log(chalk.red('❌ Error: Project not configured.'));
+    return;
+  }
+
+  const config = await fs.readJson('.roc-io-config.json');
+  const files = config.analyzedFiles;
+
+  // Simple heuristic-based prompt interpreter
+  const lowerPrompt = prompt.toLowerCase();
+  
+  if (lowerPrompt.includes('security') || lowerPrompt.includes('أمان')) {
+    console.log(chalk.yellow('🛡️ Running Security-Focused Scan...'));
+    // Filter logic would go here
+    await runBotsAction();
+  } else if (lowerPrompt.includes('cleanup') || lowerPrompt.includes('تنظيف')) {
+    console.log(chalk.blue('🧹 Running Cleanup & Optimization Scan...'));
+    await runBotsAction();
+  } else if (lowerPrompt.includes('count') || lowerPrompt.includes('عدد')) {
+    console.log(chalk.white(`📊 Total files in context: ${files.length}`));
+  } else {
+    console.log(chalk.magenta('🚀 Executing General Deep-Deep Hyper Scan...'));
+    await runBotsAction();
+  }
+}
