@@ -1,5 +1,5 @@
 {
-  "name": "roc-io",
+  "name": "roic",
   "version": "1.0.0",
   "description": "ROC IO - A powerful CLI tool for code analysis and bug detection using smart bots.",
   "main": "src/index.js",
